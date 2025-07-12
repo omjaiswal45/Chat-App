@@ -1,13 +1,16 @@
-# ✨ Full Stack Realtime Chat App ✨
+# ✨ VaaniSetu – A Full Stack Realtime Chat App ✨
 Highlights:
 
-- 🌟 Tech stack: MERN + Socket.io + TailwindCSS + Daisy UI
-- 🎃 Authentication && Authorization with JWT
-- 👾 Real-time messaging with Socket.io
-- 🚀 Online user status
-- 👌 Global state management with Zustand
-- 🐞 Error handling both on the server and on the client
-- 
+🚀 Highlights
+💻 Tech Stack: MERN (MongoDB, Express.js, React, Node.js) + Socket.io
+🎨 UI: Tailwind CSS + DaisyUI for sleek and responsive design
+🔐 Authentication & Authorization using JWT
+💬 Real-time Messaging with Socket.io
+🟢 Live Online Status for users
+📦 Global State Management using Zustand
+⚠️ Robust Error Handling on both client and server
+☁️ Media Upload integrated with Cloudinary
+
 
 ### Setup .env file
 
