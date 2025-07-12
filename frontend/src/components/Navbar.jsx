@@ -1,9 +1,24 @@
-import { Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { LogOut, MessageSquare, Settings, User } from "lucide-react";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
+
+  // React Router hooks for navigation and current location
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Function to toggle settings page
+  const handleToggleSettings = () => {
+    if (location.pathname === "/settings") {
+      // If already on settings page, go back
+      navigate(-1);
+    } else {
+      // Otherwise, navigate to settings page
+      navigate("/settings");
+    }
+  };
 
   return (
     <header
@@ -12,6 +27,7 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 h-16">
         <div className="flex items-center justify-between h-full">
+          {/* Logo and title */}
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-all">
               <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -21,25 +37,27 @@ const Navbar = () => {
             </Link>
           </div>
 
+          {/* Navigation buttons */}
           <div className="flex items-center gap-2">
-            <Link
-              to={"/settings"}
-              className={`
-              btn btn-sm gap-2 transition-colors
-              
-              `}
+            {/* Settings button with toggle behavior */}
+            <button
+              onClick={handleToggleSettings}
+              className="btn btn-sm gap-2 transition-colors"
             >
               <Settings className="w-4 h-4" />
               <span className="hidden sm:inline">Settings</span>
-            </Link>
+            </button>
 
+            {/* Show Profile and Logout only if authenticated */}
             {authUser && (
               <>
-                <Link to={"/profile"} className={`btn btn-sm gap-2`}>
+                {/* Profile link */}
+                <Link to={"/profile"} className="btn btn-sm gap-2">
                   <User className="size-5" />
                   <span className="hidden sm:inline">Profile</span>
                 </Link>
 
+                {/* Logout button */}
                 <button className="flex gap-2 items-center" onClick={logout}>
                   <LogOut className="size-5" />
                   <span className="hidden sm:inline">Logout</span>
@@ -52,4 +70,5 @@ const Navbar = () => {
     </header>
   );
 };
+
 export default Navbar;
