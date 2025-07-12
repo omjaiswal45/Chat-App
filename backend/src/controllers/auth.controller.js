@@ -99,12 +99,18 @@ export const updateProfile = async (req, res) => {
       return res.status(400).json({ message: "Invalid image format" });
     }
 
-    // Upload to Cloudinary
+    // Upload to Cloudinary with optimized settings for larger files
     const uploadResponse = await cloudinary.uploader.upload(profilePic, {
       folder: 'chat-app-profiles',
       transformation: [
-        { width: 400, height: 400, crop: 'fill' },
-        { quality: 'auto' }
+        { width: 400, height: 400, crop: 'fill', gravity: 'face' },
+        { quality: 'auto:low' },
+        { fetch_format: 'auto' }
+      ],
+      resource_type: 'image',
+      chunk_size: 6000000, // 6MB chunks
+      eager: [
+        { width: 400, height: 400, crop: 'fill', gravity: 'face' }
       ]
     });
 
@@ -123,16 +129,29 @@ export const updateProfile = async (req, res) => {
   } catch (error) {
     console.log("error in update profile:", error);
 
-    // Handle specific Cloudinary errors
-    if (error.http_code === 413) {
-      return res.status(413).json({ message: "Image file is too large" });
+    // Handle specific Cloudinary errors with better messages
+    if (error.http_code === 413 || error.message?.includes('file too large')) {
+      return res.status(413).json({
+        message: "Image file is too large. Please choose an image smaller than 10MB."
+      });
     }
 
-    if (error.http_code === 400) {
-      return res.status(400).json({ message: "Invalid image format" });
+    if (error.http_code === 400 || error.message?.includes('Invalid image')) {
+      return res.status(400).json({
+        message: "Invalid image format. Please select a valid image file (JPG, PNG, GIF, WebP)."
+      });
     }
 
-    res.status(500).json({ message: "Failed to update profile. Please try again." });
+    // Handle network or configuration errors
+    if (error.message?.includes('ENOTFOUND') || error.message?.includes('ECONNREFUSED')) {
+      return res.status(500).json({
+        message: "Image upload service is temporarily unavailable. Please try again later."
+      });
+    }
+
+    res.status(500).json({
+      message: "Failed to update profile. Please try again with a smaller image."
+    });
   }
 };
 

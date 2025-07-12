@@ -11,15 +11,22 @@ const ProfilePage = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError("File size must be less than 5MB");
+    // Validate file size (max 10MB for Cloudinary)
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("File size must be less than 10MB");
       return;
     }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
       setUploadError("Please select a valid image file");
+      return;
+    }
+
+    // Additional validation for common image formats
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError("Please select a valid image file (JPG, PNG, GIF, WebP)");
       return;
     }
 
@@ -35,7 +42,17 @@ const ProfilePage = () => {
         setSelectedImg(null); // Reset after successful upload
       } catch (error) {
         console.error("Error uploading image:", error);
-        setUploadError("Failed to upload image. Please try again.");
+
+        // Handle specific error messages from backend
+        if (error.response?.status === 413) {
+          setUploadError("Image file is too large. Please choose a smaller image.");
+        } else if (error.response?.status === 400) {
+          setUploadError("Invalid image format. Please select a valid image file.");
+        } else if (!error.response) {
+          setUploadError("Network error. Please check your connection and try again.");
+        } else {
+          setUploadError("Failed to upload image. Please try again.");
+        }
         setSelectedImg(null);
       }
     };
