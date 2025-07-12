@@ -10,24 +10,25 @@ class NotificationService {
   }
 
   init() {
-    if (!this.isSupported) return;
-
-    // Request permission if not granted
-    if (this.permission === 'default') {
-      // Don't auto-request permission, let user do it manually
-      // This prevents annoying popups on page load
+    if (!this.isSupported) {
+      console.log('Notifications not supported in this browser');
+      return;
     }
 
+    console.log('NotificationService initialized with permission:', this.permission);
     this.setupVisibilityListener();
     this.setupNotificationSound();
   }
 
   async requestPermission() {
     try {
+      console.log('Requesting notification permission...');
       const permission = await Notification.requestPermission();
       this.permission = permission;
+      console.log('Permission result:', permission);
       return permission === 'granted';
     } catch (error) {
+      console.error('Error requesting notification permission:', error);
       return false;
     }
   }
@@ -35,6 +36,7 @@ class NotificationService {
   setupVisibilityListener() {
     document.addEventListener('visibilitychange', () => {
       this.isTabActive = !document.hidden;
+      console.log('Tab visibility changed:', this.isTabActive ? 'active' : 'inactive');
     });
 
     window.addEventListener('focus', () => {
@@ -56,12 +58,18 @@ class NotificationService {
   }
 
   async showNotification(title, options = {}) {
+    console.log('Attempting to show notification:', title);
+    console.log('Current permission:', this.permission);
+    console.log('Tab active:', this.isTabActive);
+
     if (!this.isSupported || this.permission !== 'granted') {
+      console.log('Cannot show notification - not supported or permission denied');
       return false;
     }
 
     const now = Date.now();
     if (now - this.lastNotificationTime < this.notificationCooldown) {
+      console.log('Notification skipped due to cooldown');
       return false;
     }
 
@@ -75,10 +83,14 @@ class NotificationService {
         ...options
       });
 
+      console.log('Notification created successfully');
+
       if (this.notificationSound) {
         try {
           await this.notificationSound.play();
+          console.log('Notification sound played');
         } catch (error) {
+          console.log('Could not play notification sound:', error);
           try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
@@ -92,8 +104,9 @@ class NotificationService {
 
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.1);
+            console.log('System beep played');
           } catch (beepError) {
-            // Silent fallback
+            console.log('Could not play system beep:', beepError);
           }
         }
       }
@@ -105,12 +118,14 @@ class NotificationService {
       }, 5000);
 
       notification.onclick = () => {
+        console.log('Notification clicked');
         window.focus();
         notification.close();
       };
 
       notification.onactionclick = (event) => {
         const action = event.action;
+        console.log('Notification action clicked:', action);
         if (action === 'reply' || action === 'view') {
           window.focus();
         }
@@ -119,12 +134,17 @@ class NotificationService {
 
       return true;
     } catch (error) {
+      console.error('Error showing notification:', error);
       return false;
     }
   }
 
   async showMessageNotification(senderName, messageContent, senderId) {
+    console.log('showMessageNotification called:', { senderName, messageContent, senderId });
+    console.log('Tab active:', this.isTabActive);
+
     if (this.isTabActive) {
+      console.log('Notification skipped - tab is active');
       return false;
     }
 
@@ -158,11 +178,21 @@ class NotificationService {
   }
 
   async checkAndRequestPermission() {
-    // Only request permission if it's default (not yet requested)
+    console.log('Checking and requesting permission...');
     if (this.permission === 'default') {
       return await this.requestPermission();
     }
     return this.permission === 'granted';
+  }
+
+  // Method to test notifications
+  async testNotification() {
+    console.log('Testing notification...');
+    return await this.showMessageNotification(
+      'Test User',
+      'This is a test notification to verify the system is working correctly.',
+      'test-user-id'
+    );
   }
 }
 

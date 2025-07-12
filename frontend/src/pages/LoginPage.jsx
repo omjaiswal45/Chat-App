@@ -6,24 +6,31 @@ import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare } from "lucide-react";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const { login, isLoggingIn } = useAuthStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    login(formData);
+    await login(formData);
+
+    // ✅ Ask for notification permission after login
+    if (Notification.permission === "default") {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          console.log("🔔 Notifications enabled");
+        }
+      } catch (err) {
+        console.error("Notification permission error:", err);
+      }
+    }
   };
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-base-100 text-base-content">
-
       {/* Left Side - Form */}
       <div className="flex flex-col justify-center items-center p-6 sm:p-12">
         <div className="w-full max-w-md space-y-8">
-          {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex flex-col items-center gap-2 group">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -34,7 +41,6 @@ const LoginPage = () => {
             </div>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="form-control">
               <label className="label">

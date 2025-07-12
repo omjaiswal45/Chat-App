@@ -1,6 +1,8 @@
 import { THEMES } from "../constants";
 import { useThemeStore } from "../store/useThemeStore";
-import { Send } from "lucide-react";
+import { Send, Bell } from "lucide-react";
+import { notificationService } from "../lib/notificationService";
+import { useState } from "react";
 
 const PREVIEW_MESSAGES = [
   { id: 1, content: "Hey! How's it going?", isSent: false },
@@ -9,6 +11,40 @@ const PREVIEW_MESSAGES = [
 
 const SettingsPage = () => {
   const { theme, setTheme } = useThemeStore();
+  const [permissionStatus, setPermissionStatus] = useState(notificationService.getPermissionStatus());
+
+  const handleRequestNotificationPermission = async () => {
+    const granted = await notificationService.requestPermission();
+    setPermissionStatus(notificationService.getPermissionStatus());
+
+    if (granted) {
+      alert('Notification permission granted! You will now receive notifications for new messages.');
+    } else {
+      alert('Notification permission denied. You can enable notifications in your browser settings.');
+    }
+  };
+
+  const getPermissionStatusText = () => {
+    switch (permissionStatus) {
+      case 'granted':
+        return 'Notifications Enabled';
+      case 'denied':
+        return 'Notifications Blocked';
+      default:
+        return 'Permission Required';
+    }
+  };
+
+  const getPermissionStatusColor = () => {
+    switch (permissionStatus) {
+      case 'granted':
+        return 'text-green-500';
+      case 'denied':
+        return 'text-red-500';
+      default:
+        return 'text-yellow-500';
+    }
+  };
 
   return (
     <div className="h-screen container mx-auto px-4 pt-20 max-w-5xl">
@@ -43,6 +79,46 @@ const SettingsPage = () => {
                 </span>
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Notification Settings Section */}
+        <div className="space-y-6">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Bell className="w-5 h-5" />
+              Notifications
+            </h2>
+            <p className="text-sm text-base-content/70">Manage browser notifications for new messages</p>
+          </div>
+
+          <div className="card bg-base-100 shadow-sm border border-base-300">
+            <div className="card-body">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Browser Notifications</h3>
+                  <p className="text-sm text-base-content/70">
+                    Receive notifications when you get new messages while using other tabs
+                  </p>
+                  <p className={`text-sm font-medium mt-2 ${getPermissionStatusColor()}`}>
+                    Status: {getPermissionStatusText()}
+                  </p>
+                </div>
+                {permissionStatus === 'default' && (
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={handleRequestNotificationPermission}
+                  >
+                    Enable Notifications
+                  </button>
+                )}
+                {permissionStatus === 'denied' && (
+                  <div className="text-sm text-red-500">
+                    Please enable notifications in your browser settings
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

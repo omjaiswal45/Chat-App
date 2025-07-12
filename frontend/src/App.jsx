@@ -37,8 +37,18 @@ const App = () => {
   // Initialize notification service and subscribe to messages
   useEffect(() => {
     if (authUser) {
-      // Initialize notification service and request permission
-      notificationService.checkAndRequestPermission();
+      // Request notification permission immediately when user logs in
+      const requestNotificationPermission = async () => {
+        const granted = await notificationService.requestPermission();
+        if (granted) {
+          console.log('Notification permission granted');
+        } else {
+          console.log('Notification permission denied');
+        }
+      };
+
+      // Request permission after a short delay to ensure user is ready
+      setTimeout(requestNotificationPermission, 1000);
 
       // Subscribe to messages for notifications
       subscribeToMessages();
