@@ -149,9 +149,12 @@ export const useChatStore = create((set, get) => ({
         const sender = get().users.find(user => user._id === newMessage.senderId);
         const senderName = sender ? sender.fullName : 'Someone';
 
+        // Get message content (text or image)
+        const messageContent = newMessage.text || (newMessage.image ? 'Sent an image' : 'Sent a message');
+
         await notificationService.showMessageNotification(
           senderName,
-          newMessage.message,
+          messageContent,
           newMessage.senderId
         );
       }

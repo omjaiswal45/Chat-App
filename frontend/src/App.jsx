@@ -37,7 +37,7 @@ const App = () => {
   // Initialize notification service and subscribe to messages
   useEffect(() => {
     if (authUser) {
-      // Initialize notification service
+      // Initialize notification service and request permission
       notificationService.checkAndRequestPermission();
 
       // Subscribe to messages for notifications

@@ -12,8 +12,10 @@ class NotificationService {
   init() {
     if (!this.isSupported) return;
 
+    // Request permission if not granted
     if (this.permission === 'default') {
-      this.requestPermission();
+      // Don't auto-request permission, let user do it manually
+      // This prevents annoying popups on page load
     }
 
     this.setupVisibilityListener();
@@ -156,6 +158,7 @@ class NotificationService {
   }
 
   async checkAndRequestPermission() {
+    // Only request permission if it's default (not yet requested)
     if (this.permission === 'default') {
       return await this.requestPermission();
     }
