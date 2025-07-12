@@ -1,0 +1,21 @@
+# Node modules for both frontend and backend
+frontend/node_modules/
+backend/node_modules/
+
+# Environment files
+frontend/.env
+backend/.env
+
+# Build folders (for React/Vite etc.)
+frontend/dist/
+frontend/build/
+
+# Logs
+*.log
+
+# OS/System files
+.DS_Store
+Thumbs.db
+
+# Optional: VSCode settings
+.vscode/
