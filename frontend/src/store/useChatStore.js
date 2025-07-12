@@ -121,8 +121,8 @@ export const useChatStore = create((set, get) => ({
       const isMessageForCurrentUser = newMessage.receiverId === authUser._id;
       if (!isMessageForCurrentUser) return;
 
-      // Check if message is from selected user
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
+      // Check if message is from selected user (current chat)
+      const isMessageFromSelectedUser = newMessage.senderId === selectedUser._id;
 
       // Save new message to IndexedDB
       try {
@@ -132,14 +132,18 @@ export const useChatStore = create((set, get) => ({
       }
 
       // Update messages if from selected user
-      if (isMessageSentFromSelectedUser) {
+      if (isMessageFromSelectedUser) {
         set({
           messages: [...get().messages, newMessage],
         });
       }
 
-      // Show notification if tab is not active
-      if (!notificationService.isTabActive()) {
+      // Show notification only if:
+      // 1. Tab is not active (user is on different tab or app is background)
+      // 2. Message is NOT from the currently selected user (different chat)
+      const shouldShowNotification = !notificationService.isTabActive() && !isMessageFromSelectedUser;
+
+      if (shouldShowNotification) {
         // Find sender name from users list
         const sender = get().users.find(user => user._id === newMessage.senderId);
         const senderName = sender ? sender.fullName : 'Someone';

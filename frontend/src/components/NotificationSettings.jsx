@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Bell, BellOff, Volume2, VolumeX } from "lucide-react";
+import { Bell, BellOff, Volume2, VolumeX, Play } from "lucide-react";
 import { notificationService } from "../lib/notificationService";
 
 const NotificationSettings = () => {
   const [permissionStatus, setPermissionStatus] = useState('default');
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [isEnabled, setIsEnabled] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
 
   useEffect(() => {
     updatePermissionStatus();
@@ -35,6 +36,22 @@ const NotificationSettings = () => {
     setIsSoundEnabled(!isSoundEnabled);
     // You could save this preference to localStorage
     localStorage.setItem('notificationSound', (!isSoundEnabled).toString());
+  };
+
+  const handleTestNotification = async () => {
+    if (permissionStatus !== 'granted') {
+      alert('Please enable notifications first');
+      return;
+    }
+
+    setIsTesting(true);
+    try {
+      await notificationService.testNotification();
+    } catch (error) {
+      console.error('Error testing notification:', error);
+    } finally {
+      setIsTesting(false);
+    }
   };
 
   const getStatusColor = () => {
@@ -121,6 +138,30 @@ const NotificationSettings = () => {
           </div>
         </div>
 
+        {/* Test Notification */}
+        {permissionStatus === 'granted' && (
+          <div className="card bg-base-100 shadow-sm border border-base-300">
+            <div className="card-body">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">Test Notifications</h4>
+                  <p className="text-sm text-base-content/70">
+                    Test the notification system to make sure it's working
+                  </p>
+                </div>
+                <button
+                  className={`btn btn-outline btn-sm ${isTesting ? 'loading' : ''}`}
+                  onClick={handleTestNotification}
+                  disabled={isTesting}
+                >
+                  <Play className="w-4 h-4" />
+                  Test Notification
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Sound Settings */}
         <div className="card bg-base-100 shadow-sm border border-base-300">
           <div className="card-body">
@@ -157,7 +198,8 @@ const NotificationSettings = () => {
           <div className="card-body">
             <h4 className="font-medium mb-2">How it works</h4>
             <div className="space-y-2 text-sm text-base-content/70">
-              <p>• Notifications appear when you're not actively using the chat</p>
+              <p>• Notifications only appear when you're not in the current chat tab</p>
+              <p>• You'll be notified when someone messages you in a different chat</p>
               <p>• Click on a notification to open the chat</p>
               <p>• Notifications are automatically dismissed after 5 seconds</p>
               <p>• You can manage notification permissions in your browser settings</p>
