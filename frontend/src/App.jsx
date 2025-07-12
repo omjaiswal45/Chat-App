@@ -11,13 +11,14 @@ import { useAuthStore } from "./store/useAuthStore";
 import { useChatStore } from "./store/useChatStore";
 import { useThemeStore } from "./store/useThemeStore";
 import { useEffect } from "react";
+import { notificationService } from "./lib/notificationService";
 
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
-  const { initializeCachedMessages } = useChatStore();
+  const { initializeCachedMessages, subscribeToMessages, unsubscribeFromMessages } = useChatStore();
   const { theme } = useThemeStore();
 
   console.log({ onlineUsers });
@@ -32,6 +33,22 @@ const App = () => {
       initializeCachedMessages();
     }
   }, [authUser, initializeCachedMessages]);
+
+  // Initialize notification service and subscribe to messages
+  useEffect(() => {
+    if (authUser) {
+      // Initialize notification service
+      notificationService.checkAndRequestPermission();
+
+      // Subscribe to messages for notifications
+      subscribeToMessages();
+
+      // Cleanup on unmount
+      return () => {
+        unsubscribeFromMessages();
+      };
+    }
+  }, [authUser, subscribeToMessages, unsubscribeFromMessages]);
 
   console.log({ authUser });
 
