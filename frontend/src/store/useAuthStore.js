@@ -76,7 +76,22 @@ export const useAuthStore = create((set, get) => ({
       toast.success("Profile updated successfully");
     } catch (error) {
       console.log("error in update profile:", error);
-      toast.error(error.response.data.message);
+
+      // Handle different types of errors
+      if (error.response?.status === 401) {
+        toast.error("Please log in again to update your profile");
+      } else if (error.response?.status === 400) {
+        toast.error(error.response.data.message || "Invalid profile data");
+      } else if (error.response?.status === 413) {
+        toast.error("Image file is too large. Please choose a smaller image.");
+      } else if (!error.response) {
+        toast.error("Network error. Please check your connection and try again.");
+      } else {
+        toast.error(error.response.data.message || "Failed to update profile");
+      }
+
+      // Re-throw the error so the component can handle it
+      throw error;
     } finally {
       set({ isUpdatingProfile: false });
     }

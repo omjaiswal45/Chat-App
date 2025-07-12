@@ -94,17 +94,45 @@ export const updateProfile = async (req, res) => {
       return res.status(400).json({ message: "Profile pic is required" });
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+    // Validate that profilePic is a valid base64 image
+    if (!profilePic.startsWith('data:image/')) {
+      return res.status(400).json({ message: "Invalid image format" });
+    }
+
+    // Upload to Cloudinary
+    const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+      folder: 'chat-app-profiles',
+      transformation: [
+        { width: 400, height: 400, crop: 'fill' },
+        { quality: 'auto' }
+      ]
+    });
+
+    // Update user profile
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profilePic: uploadResponse.secure_url },
-      { new: true }
+      { new: true, select: '-password' }
     );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     res.status(200).json(updatedUser);
   } catch (error) {
     console.log("error in update profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+
+    // Handle specific Cloudinary errors
+    if (error.http_code === 413) {
+      return res.status(413).json({ message: "Image file is too large" });
+    }
+
+    if (error.http_code === 400) {
+      return res.status(400).json({ message: "Invalid image format" });
+    }
+
+    res.status(500).json({ message: "Failed to update profile. Please try again." });
   }
 };
 

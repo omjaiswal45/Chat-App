@@ -1,10 +1,6 @@
 import { THEMES } from "../constants";
 import { useThemeStore } from "../store/useThemeStore";
-import { useChatStore } from "../store/useChatStore";
-import { useAuthStore } from "../store/useAuthStore";
-import { Send, Trash2, Database, AlertTriangle, Info } from "lucide-react";
-import { useState, useEffect } from "react";
-import { indexedDBService } from "../lib/indexedDB";
+import { Send } from "lucide-react";
 
 const PREVIEW_MESSAGES = [
   { id: 1, content: "Hey! How's it going?", isSent: false },
@@ -13,58 +9,6 @@ const PREVIEW_MESSAGES = [
 
 const SettingsPage = () => {
   const { theme, setTheme } = useThemeStore();
-  const { clearUserMessages, clearAllMessages, selectedUser } = useChatStore();
-  const { authUser } = useAuthStore();
-  const [isClearing, setIsClearing] = useState(false);
-  const [storageInfo, setStorageInfo] = useState(null);
-  const [isLoadingStorage, setIsLoadingStorage] = useState(true);
-
-  useEffect(() => {
-    loadStorageInfo();
-  }, []);
-
-  const loadStorageInfo = async () => {
-    try {
-      setIsLoadingStorage(true);
-      const info = await indexedDBService.getStorageInfo();
-      setStorageInfo(info);
-    } catch (error) {
-      console.error("Error loading storage info:", error);
-    } finally {
-      setIsLoadingStorage(false);
-    }
-  };
-
-  const handleClearCurrentChat = async () => {
-    if (!selectedUser) {
-      alert("Please select a chat first");
-      return;
-    }
-
-    setIsClearing(true);
-    try {
-      await clearUserMessages(selectedUser._id);
-      await loadStorageInfo(); // Refresh storage info
-    } finally {
-      setIsClearing(false);
-    }
-  };
-
-  const handleClearAllMessages = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to clear all cached messages? This action cannot be undone."
-    );
-
-    if (!confirmed) return;
-
-    setIsClearing(true);
-    try {
-      await clearAllMessages();
-      await loadStorageInfo(); // Refresh storage info
-    } finally {
-      setIsClearing(false);
-    }
-  };
 
   return (
     <div className="h-screen container mx-auto px-4 pt-20 max-w-5xl">
@@ -99,116 +43,6 @@ const SettingsPage = () => {
                 </span>
               </button>
             ))}
-          </div>
-        </div>
-
-        {/* Storage Management Section */}
-        <div className="space-y-6">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Database className="w-5 h-5" />
-              Storage Management
-            </h2>
-            <p className="text-sm text-base-content/70">
-              Manage your cached messages and local storage
-            </p>
-          </div>
-
-          <div className="grid gap-4">
-            {/* Storage Stats */}
-            <div className="card bg-base-100 shadow-sm border border-base-300">
-              <div className="card-body">
-                <h3 className="card-title text-base flex items-center gap-2">
-                  <Info className="w-4 h-4 text-info" />
-                  Storage Statistics
-                </h3>
-                {isLoadingStorage ? (
-                  <div className="flex items-center gap-2">
-                    <div className="loading loading-spinner loading-sm"></div>
-                    <span className="text-sm">Loading storage info...</span>
-                  </div>
-                ) : storageInfo ? (
-                  <div className="space-y-2 text-sm">
-                    <p className="text-base-content/70">
-                      Total cached messages: <span className="font-semibold text-primary">{storageInfo.totalMessages}</span>
-                    </p>
-                    <p className="text-base-content/70">
-                      Conversations with: <span className="font-semibold text-primary">{storageInfo.uniqueUsers}</span> users
-                    </p>
-                    {storageInfo.totalMessages > 0 && (
-                      <p className="text-base-content/70">
-                        Average messages per conversation: <span className="font-semibold text-primary">
-                          {Math.round(storageInfo.totalMessages / storageInfo.uniqueUsers)}
-                        </span>
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-sm text-base-content/70">No cached messages found</p>
-                )}
-              </div>
-            </div>
-
-            {/* Current Chat Messages */}
-            <div className="card bg-base-100 shadow-sm border border-base-300">
-              <div className="card-body">
-                <h3 className="card-title text-base">Current Chat Messages</h3>
-                <p className="text-sm text-base-content/70">
-                  Clear cached messages for the currently selected chat
-                </p>
-                <div className="card-actions justify-end">
-                  <button
-                    className={`btn btn-outline btn-sm ${isClearing ? 'loading' : ''}`}
-                    onClick={handleClearCurrentChat}
-                    disabled={!selectedUser || isClearing}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Clear Current Chat
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* All Messages */}
-            <div className="card bg-base-100 shadow-sm border border-base-300">
-              <div className="card-body">
-                <h3 className="card-title text-base">All Cached Messages</h3>
-                <p className="text-sm text-base-content/70">
-                  Clear all cached messages from your browser storage
-                </p>
-                <div className="card-actions justify-end">
-                  <button
-                    className={`btn btn-error btn-sm ${isClearing ? 'loading' : ''}`}
-                    onClick={handleClearAllMessages}
-                    disabled={isClearing}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Clear All Messages
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Storage Info */}
-            <div className="card bg-base-100 shadow-sm border border-base-300">
-              <div className="card-body">
-                <h3 className="card-title text-base flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-warning" />
-                  Storage Information
-                </h3>
-                <div className="space-y-2 text-sm">
-                  <p className="text-base-content/70">
-                    Messages are automatically cached in your browser's IndexedDB storage for offline access.
-                  </p>
-                  <p className="text-base-content/70">
-                    This data persists even when you close the browser and helps load messages faster.
-                  </p>
-                  <p className="text-base-content/70">
-                    You can clear this data anytime using the options above.
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -284,4 +118,5 @@ const SettingsPage = () => {
     </div>
   );
 };
+
 export default SettingsPage;
