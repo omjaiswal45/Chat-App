@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
 import { useAuthStore } from "./useAuthStore";
 import { indexedDBService } from "../lib/indexedDB";
+import { notificationService } from "../lib/notificationService";
 
 export const useChatStore = create((set, get) => ({
   messages: [],
@@ -114,19 +115,41 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
 
     socket.on("newMessage", async (newMessage) => {
+      const { authUser } = useAuthStore.getState();
+
+      // Check if message is for current user
+      const isMessageForCurrentUser = newMessage.receiverId === authUser._id;
+      if (!isMessageForCurrentUser) return;
+
+      // Check if message is from selected user
       const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) return;
 
       // Save new message to IndexedDB
       try {
-        await indexedDBService.saveMessage(selectedUser._id, newMessage);
+        await indexedDBService.saveMessage(newMessage.senderId, newMessage);
       } catch (error) {
         console.error("Error saving message to IndexedDB:", error);
       }
 
-      set({
-        messages: [...get().messages, newMessage],
-      });
+      // Update messages if from selected user
+      if (isMessageSentFromSelectedUser) {
+        set({
+          messages: [...get().messages, newMessage],
+        });
+      }
+
+      // Show notification if tab is not active
+      if (!notificationService.isTabActive()) {
+        // Find sender name from users list
+        const sender = get().users.find(user => user._id === newMessage.senderId);
+        const senderName = sender ? sender.fullName : 'Someone';
+
+        await notificationService.showMessageNotification(
+          senderName,
+          newMessage.message,
+          newMessage.senderId
+        );
+      }
     });
   },
 

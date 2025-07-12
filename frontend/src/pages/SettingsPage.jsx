@@ -1,6 +1,7 @@
 import { THEMES } from "../constants";
 import { useThemeStore } from "../store/useThemeStore";
 import { Send } from "lucide-react";
+import NotificationSettings from "../components/NotificationSettings";
 
 const PREVIEW_MESSAGES = [
   { id: 1, content: "Hey! How's it going?", isSent: false },
@@ -45,6 +46,9 @@ const SettingsPage = () => {
             ))}
           </div>
         </div>
+
+        {/* Notification Settings Section */}
+        <NotificationSettings />
 
         {/* Preview Section */}
         <div className="space-y-6">
