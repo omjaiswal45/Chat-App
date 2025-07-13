@@ -80,26 +80,11 @@ const SettingsPage = () => {
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Notification Settings Section */}
-        <div className="space-y-6">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Bell className="w-5 h-5" />
-              Notifications
-            </h2>
-            <p className="text-sm text-base-content/70">Manage browser notifications for new messages</p>
-          </div>
-
           <div className="card bg-base-100 shadow-sm border border-base-300">
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Browser Notifications</h3>
-                  <p className="text-sm text-base-content/70">
-                    Receive notifications when you get new messages while using other tabs
-                  </p>
+              
                   <p className={`text-sm font-medium mt-2 ${getPermissionStatusColor()}`}>
                     Status: {getPermissionStatusText()}
                   </p>
